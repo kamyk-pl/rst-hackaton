@@ -1,0 +1,53 @@
+name: LiteLLM health check
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 * * * *"
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping LiteLLM model
+        env:
+          LITELLM_API_KEY: ${{ secrets.LITELLM_API_KEY }}
+          LITELLM_BASE_URL: ${{ secrets.LITELLM_BASE_URL }}
+          LITELLM_MODEL: ${{ secrets.LITELLM_MODEL }}
+        run: |
+          python3 - <<'EOF'
+          import os, sys, json
+          from urllib.request import urlopen, Request
+          from urllib.error import URLError
+
+          base = os.environ["LITELLM_BASE_URL"].rstrip("/")
+          key  = os.environ["LITELLM_API_KEY"]
+          model = os.environ.get("LITELLM_MODEL", "gpt-4o-mini")
+
+          payload = json.dumps({
+              "model": model,
+              "messages": [{"role": "user", "content": "ping"}],
+              "max_tokens": 5,
+          }).encode()
+
+          req = Request(
+              f"{base}/chat/completions",
+              data=payload,
+              headers={
+                  "Content-Type": "application/json",
+                  "Authorization": f"Bearer {key}",
+              },
+          )
+
+          try:
+              with urlopen(req, timeout=15) as resp:
+                  body = json.load(resp)
+              reply = body["choices"][0]["message"]["content"].strip()
+              print(f"OK — model={model} reply={reply!r}")
+          except URLError as e:
+              print(f"FAIL — {e}", file=sys.stderr)
+              sys.exit(1)
+          except Exception as e:
+              print(f"FAIL — {e}", file=sys.stderr)
+              sys.exit(1)
+          EOF
