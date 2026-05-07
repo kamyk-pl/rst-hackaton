@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth";
+import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -6,15 +6,15 @@ import { ROLE } from "@/lib/constants";
 import { Pencil, User, Activity, Pill } from "lucide-react";
 
 export default async function PatientProfilePage() {
-  const session = await auth();
-  if (!session?.user || session.user.role !== ROLE.PACJENT) redirect("/login");
+  const session = await getSession();
+  if (!session || session.role !== ROLE.PACJENT) redirect("/login");
 
   const profile = await prisma.patientProfile.findUnique({
-    where: { userId: session.user.id },
+    where: { userId: session.id },
   });
 
   const isEmpty = !profile?.firstName && !profile?.lastName;
-  const initials = profile?.firstName?.[0] ?? session.user.email[0].toUpperCase();
+  const initials = profile?.firstName?.[0] ?? session.email[0].toUpperCase();
 
   return (
     <div>

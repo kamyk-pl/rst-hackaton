@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ROLE } from "@/lib/constants";
 
 const PUBLIC_PATHS = ["/", "/login"];
 const AUTH_COOKIE = "authjs.session-token";

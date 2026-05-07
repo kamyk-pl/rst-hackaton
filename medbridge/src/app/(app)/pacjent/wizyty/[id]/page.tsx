@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth";
+import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
@@ -12,8 +12,8 @@ export default async function PatientVisitDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const session = await auth();
-  if (!session?.user || session.user.role !== ROLE.PACJENT) redirect("/login");
+  const session = await getSession();
+  if (!session || session.role !== ROLE.PACJENT) redirect("/login");
 
   const { id } = await params;
 
@@ -26,7 +26,7 @@ export default async function PatientVisitDetailPage({
     },
   });
 
-  if (!appointment || appointment.patientId !== session.user.id) notFound();
+  if (!appointment || appointment.patientId !== session.id) notFound();
 
   const dt = new Date(appointment.slot.dateTime);
   const isDone = appointment.status === APPOINTMENT_STATUS.ZAKONCZONA;

@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth";
+import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { ROLE, SLOT_STATUS } from "@/lib/constants";
@@ -7,11 +7,11 @@ import { SlotList } from "@/components/slot-list";
 import { Clock } from "lucide-react";
 
 export default async function TerminyPage() {
-  const session = await auth();
-  if (!session?.user || session.user.role !== ROLE.LEKARZ) redirect("/login");
+  const session = await getSession();
+  if (!session || session.role !== ROLE.LEKARZ) redirect("/login");
 
   const slots = await prisma.slot.findMany({
-    where: { doctorId: session.user.id },
+    where: { doctorId: session.id },
     orderBy: { dateTime: "asc" },
   });
 
