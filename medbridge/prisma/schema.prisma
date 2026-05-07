@@ -1,0 +1,94 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Role: PACJENT | LEKARZ
+// SlotStatus: DOSTEPNY | ZAREZERWOWANY
+// AppointmentStatus: ZAPLANOWANA | ZAKONCZONA
+
+model User {
+  id                 String            @id @default(cuid())
+  email              String            @unique
+  hashedPassword     String
+  role               String
+  createdAt          DateTime          @default(now())
+  patientProfile     PatientProfile?
+  doctorProfile      DoctorProfile?
+  appointments       Appointment[]     @relation("PatientAppointments")
+  doctorAppointments Appointment[]     @relation("DoctorAppointments")
+  slots              Slot[]
+  documents          MedicalDocument[]
+}
+
+model PatientProfile {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id])
+  firstName       String   @default("")
+  lastName        String   @default("")
+  dateOfBirth     String   @default("")
+  allergies       String   @default("")
+  chronicDiseases String   @default("")
+  medications     String   @default("")
+  updatedAt       DateTime @updatedAt
+}
+
+model DoctorProfile {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id])
+  firstName      String   @default("")
+  lastName       String   @default("")
+  specialization String   @default("")
+  updatedAt      DateTime @updatedAt
+}
+
+model MedicalDocument {
+  id          String   @id @default(cuid())
+  patientId   String
+  patient     User     @relation(fields: [patientId], references: [id])
+  filename    String
+  storagePath String
+  mimeType    String
+  uploadedAt  DateTime @default(now())
+}
+
+model Slot {
+  id          String       @id @default(cuid())
+  doctorId    String
+  doctor      User         @relation(fields: [doctorId], references: [id])
+  dateTime    DateTime
+  status      String       @default("DOSTEPNY")
+  appointment Appointment?
+  createdAt   DateTime     @default(now())
+}
+
+model Appointment {
+  id             String       @id @default(cuid())
+  patientId      String
+  patient        User         @relation("PatientAppointments", fields: [patientId], references: [id])
+  doctorId       String
+  doctor         User         @relation("DoctorAppointments", fields: [doctorId], references: [id])
+  slotId         String       @unique
+  slot           Slot         @relation(fields: [slotId], references: [id])
+  consentGranted Boolean      @default(false)
+  status         String       @default("ZAPLANOWANA")
+  createdAt      DateTime     @default(now())
+  visitSummary   VisitSummary?
+}
+
+model VisitSummary {
+  id                    String      @id @default(cuid())
+  appointmentId         String      @unique
+  appointment           Appointment @relation(fields: [appointmentId], references: [id])
+  diagnosis             String      @default("")
+  recommendations       String      @default("")
+  prescribedMedications String      @default("")
+  referrals             String      @default("")
+  createdAt             DateTime    @default(now())
+}
