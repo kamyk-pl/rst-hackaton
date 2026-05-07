@@ -67,7 +67,7 @@ export function Sidebar({ role, email }: SidebarProps) {
               key={href}
               href={href}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all ${
-                active ? "bg-[#00bfa5]/12 text-[#00bfa5]" : "text-white/50 hover:text-white/80"
+                active ? "bg-[#00bfa5]/[.12] text-[#00bfa5]" : "text-white/50 hover:text-white/80"
               }`}
             >
               <Icon className="h-4 w-4 shrink-0" />
