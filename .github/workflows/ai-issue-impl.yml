@@ -1,0 +1,71 @@
+name: AI Agent — implement issue
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  implement:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install openai
+
+      - name: Create implementation branch
+        id: branch
+        run: |
+          BRANCH="ai/issue-${{ github.event.issue.number }}"
+          git checkout -b "$BRANCH"
+          echo "name=$BRANCH" >> "$GITHUB_OUTPUT"
+
+      - name: Run AI agent
+        env:
+          LITELLM_API_KEY: ${{ secrets.LITELLM_API_KEY }}
+          LITELLM_BASE_URL: ${{ secrets.LITELLM_BASE_URL }}
+          LITELLM_MODEL: ${{ secrets.LITELLM_MODEL }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_LABELS: ${{ join(github.event.issue.labels.*.name, ',') }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python .github/scripts/ai_issue_agent.py
+
+      - name: Open PR
+        if: steps.branch.outputs.name != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: ${{ steps.branch.outputs.name }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+        run: |
+          # Only open PR if there are commits ahead of main
+          AHEAD=$(git rev-list --count origin/main..HEAD 2>/dev/null || echo 0)
+          if [ "$AHEAD" -gt 0 ]; then
+            git push origin "$BRANCH"
+            gh pr create \
+              --title "fix: $ISSUE_TITLE (#$ISSUE_NUMBER)" \
+              --body "Closes #$ISSUE_NUMBER
+
+          Auto-implemented by AI agent based on issue description." \
+              --base main \
+              --head "$BRANCH"
+          else
+            gh issue comment "$ISSUE_NUMBER" \
+              --body "🤖 AI agent analyzed this issue but found no code changes to make. Please provide more details."
+          fi
