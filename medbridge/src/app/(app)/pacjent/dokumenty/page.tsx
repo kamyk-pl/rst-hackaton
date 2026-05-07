@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth";
+import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { ROLE } from "@/lib/constants";
@@ -7,11 +7,11 @@ import { DocumentList } from "@/components/document-list";
 import { Upload, FileText } from "lucide-react";
 
 export default async function DocumentsPage() {
-  const session = await auth();
-  if (!session?.user || session.user.role !== ROLE.PACJENT) redirect("/login");
+  const session = await getSession();
+  if (!session || session.role !== ROLE.PACJENT) redirect("/login");
 
   const documents = await prisma.medicalDocument.findMany({
-    where: { patientId: session.user.id },
+    where: { patientId: session.id },
     orderBy: { uploadedAt: "desc" },
   });
 

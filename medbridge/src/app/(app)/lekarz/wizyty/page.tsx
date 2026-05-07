@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth";
+import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -6,11 +6,11 @@ import { ROLE, APPOINTMENT_STATUS } from "@/lib/constants";
 import { Calendar, Clock, ChevronRight } from "lucide-react";
 
 export default async function DoctorVisitsPage() {
-  const session = await auth();
-  if (!session?.user || session.user.role !== ROLE.LEKARZ) redirect("/login");
+  const session = await getSession();
+  if (!session || session.role !== ROLE.LEKARZ) redirect("/login");
 
   const appointments = await prisma.appointment.findMany({
-    where: { doctorId: session.user.id },
+    where: { doctorId: session.id },
     include: { slot: true, patient: { include: { patientProfile: true } }, visitSummary: true },
     orderBy: { slot: { dateTime: "asc" } },
   });

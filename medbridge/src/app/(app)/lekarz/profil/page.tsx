@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth";
+import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -6,10 +6,10 @@ import { ROLE } from "@/lib/constants";
 import { Pencil, Stethoscope, Mail } from "lucide-react";
 
 export default async function DoctorProfilePage() {
-  const session = await auth();
-  if (!session?.user || session.user.role !== ROLE.LEKARZ) redirect("/login");
+  const session = await getSession();
+  if (!session || session.role !== ROLE.LEKARZ) redirect("/login");
 
-  const profile = await prisma.doctorProfile.findUnique({ where: { userId: session.user.id } });
+  const profile = await prisma.doctorProfile.findUnique({ where: { userId: session.id } });
   const isEmpty = !profile?.firstName && !profile?.lastName;
 
   return (
@@ -53,7 +53,7 @@ export default async function DoctorProfilePage() {
           <div className="p-6 grid grid-cols-2 gap-x-8 gap-y-4">
             <Field label="Imię i nazwisko" value={`${profile!.firstName} ${profile!.lastName}`.trim()} />
             <Field label="Specjalizacja" value={profile!.specialization || "—"} />
-            <Field label="Email" value={session.user.email} icon={<Mail className="h-3.5 w-3.5" />} />
+            <Field label="Email" value={session.email} icon={<Mail className="h-3.5 w-3.5" />} />
           </div>
         </div>
       )}

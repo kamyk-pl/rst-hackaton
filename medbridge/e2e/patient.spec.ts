@@ -12,9 +12,9 @@ test.describe("Pacjent — flow", () => {
     await page.fill('input[name="lastName"]', "Testowa");
     await page.fill('input[name="dateOfBirth"]', "1990-05-15");
     await page.fill('textarea[name="allergies"]', "Penicylina");
-    await page.click('button[type="submit"]');
+    await page.click('button[type="submit"]:has-text("Zapisz")');
     await page.waitForURL(/\/pacjent\/profil$/, { timeout: 20000 });
-    await expect(page.locator("text=Anna Testowa")).toBeVisible();
+    await expect(page.locator("h1").filter({ hasText: "Anna Testowa" })).toBeVisible();
   });
 
   test("strona profilu pokazuje dane zdrowotne", async ({ page }) => {

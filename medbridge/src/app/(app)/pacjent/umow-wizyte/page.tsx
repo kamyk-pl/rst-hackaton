@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth";
+import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -6,8 +6,8 @@ import { ROLE, SLOT_STATUS } from "@/lib/constants";
 import { ChevronRight, Stethoscope } from "lucide-react";
 
 export default async function UmowWizytePage() {
-  const session = await auth();
-  if (!session?.user || session.user.role !== ROLE.PACJENT) redirect("/login");
+  const session = await getSession();
+  if (!session || session.role !== ROLE.PACJENT) redirect("/login");
 
   const doctors = await prisma.user.findMany({
     where: { role: ROLE.LEKARZ, slots: { some: { status: SLOT_STATUS.DOSTEPNY } } },

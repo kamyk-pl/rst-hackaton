@@ -11,9 +11,9 @@ test.describe("Lekarz — flow", () => {
     await page.fill('input[name="firstName"]', "Jan");
     await page.fill('input[name="lastName"]', "Nowak");
     await page.fill('input[name="specialization"]', "Kardiolog");
-    await page.click('button[type="submit"]');
+    await page.click('button[type="submit"]:has-text("Zapisz")');
     await page.waitForURL(/\/lekarz\/profil$/, { timeout: 20000 });
-    await expect(page.locator("text=Jan Nowak")).toBeVisible();
+    await expect(page.locator("h1").filter({ hasText: "Jan Nowak" })).toBeVisible();
   });
 
   test("dodanie nowego slotu", async ({ page }) => {

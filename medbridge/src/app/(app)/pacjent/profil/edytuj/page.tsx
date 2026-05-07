@@ -1,15 +1,15 @@
-import { auth } from "@/lib/auth";
+import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { PatientProfileForm } from "@/components/patient-profile-form";
-import { ROLE, SLOT_STATUS, APPOINTMENT_STATUS } from "@/lib/constants";
+import { ROLE } from "@/lib/constants";
 
 export default async function EditPatientProfilePage() {
-  const session = await auth();
-  if (!session?.user || session.user.role !== ROLE.PACJENT) redirect("/login");
+  const session = await getSession();
+  if (!session || session.role !== ROLE.PACJENT) redirect("/login");
 
   const profile = await prisma.patientProfile.findUnique({
-    where: { userId: session.user.id },
+    where: { userId: session.id },
   });
 
   return (

@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth";
+import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import { Sidebar } from "@/components/sidebar";
 
@@ -7,12 +7,12 @@ export default async function AppLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await auth();
-  if (!session?.user) redirect("/login");
+  const session = await getSession();
+  if (!session) redirect("/login");
 
   return (
     <div className="flex min-h-screen" style={{ backgroundColor: "#f1f3f6" }}>
-      <Sidebar role={session.user.role} email={session.user.email} />
+      <Sidebar role={session.role} email={session.email} />
       <div className="flex-1 flex flex-col overflow-hidden">
         <main className="flex-1 overflow-auto p-8">
           <div className="max-w-4xl">

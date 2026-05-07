@@ -11,9 +11,7 @@ export async function updateDoctorProfile(
   formData: FormData
 ) {
   const session = await getSession();
-  console.log("[doctor action] session:", JSON.stringify(session));
   if (!session || session.role !== ROLE.LEKARZ) {
-    console.log("[doctor action] NO SESSION or wrong role, returning error");
     return { error: "Brak dostępu" };
   }
 

@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth";
+import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
@@ -11,8 +11,8 @@ export default async function DoctorSlotsPage({
 }: {
   params: Promise<{ doctorId: string }>;
 }) {
-  const session = await auth();
-  if (!session?.user || session.user.role !== ROLE.PACJENT) redirect("/login");
+  const session = await getSession();
+  if (!session || session.role !== ROLE.PACJENT) redirect("/login");
 
   const { doctorId } = await params;
 
