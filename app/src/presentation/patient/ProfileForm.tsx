@@ -2,26 +2,20 @@
 
 import { useActionState } from "react";
 import type { PatientProfile, AllergySeverity } from "@/domain/patient/types";
-import type {
-  updateProfileAction,
-  addAllergyAction,
-  updateAllergyAction,
-  removeAllergyAction,
-  addDiseaseAction,
-  removeDiseaseAction,
-  addMedicationAction,
-  removeMedicationAction,
-} from "@/app/patient/dashboard/actions";
+
+// Action types are defined inline to avoid importing from a "use server" module
+// in a "use client" component, which violates the server/client module boundary.
+type ServerAction = (formData: FormData) => Promise<void>;
 
 type Actions = {
-  updateProfile: typeof updateProfileAction;
-  addAllergy: typeof addAllergyAction;
-  updateAllergy: typeof updateAllergyAction;
-  removeAllergy: typeof removeAllergyAction;
-  addDisease: typeof addDiseaseAction;
-  removeDisease: typeof removeDiseaseAction;
-  addMedication: typeof addMedicationAction;
-  removeMedication: typeof removeMedicationAction;
+  updateProfile: ServerAction;
+  addAllergy: ServerAction;
+  updateAllergy: ServerAction;
+  removeAllergy: ServerAction;
+  addDisease: ServerAction;
+  removeDisease: ServerAction;
+  addMedication: ServerAction;
+  removeMedication: ServerAction;
 };
 
 interface Props {
