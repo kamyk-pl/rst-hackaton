@@ -1,0 +1,168 @@
+// MedBridge — Prisma schema
+// Hexagonal architecture: this schema is the infrastructure layer's persistence contract.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  // url is configured in prisma.config.ts (Prisma v7 — datasource url moved to config file)
+}
+
+// ─── Auth ────────────────────────────────────────────────────────────────────
+
+model User {
+  id             String  @id @default(cuid())
+  email          String  @unique
+  hashedPassword String
+  role           Role
+
+  patient Patient?
+  doctor  Doctor?
+}
+
+enum Role {
+  PATIENT
+  DOCTOR
+}
+
+// ─── Patient domain ──────────────────────────────────────────────────────────
+
+model Patient {
+  id          String   @id @default(cuid())
+  firstName   String
+  lastName    String
+  dateOfBirth DateTime
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+
+  allergies    Allergy[]
+  diseases     ChronicDisease[]
+  medications  PatientMedication[]
+  documents    Document[]
+  appointments Appointment[]
+}
+
+model Allergy {
+  id             String          @id @default(cuid())
+  allergen       String
+  reactionType   String
+  severity       AllergySeverity
+  dateIdentified DateTime?
+
+  patientId String
+  patient   Patient @relation(fields: [patientId], references: [id])
+}
+
+enum AllergySeverity {
+  MILD
+  MODERATE
+  SEVERE
+}
+
+model ChronicDisease {
+  id   String @id @default(cuid())
+  name String
+
+  patientId String
+  patient   Patient @relation(fields: [patientId], references: [id])
+}
+
+model PatientMedication {
+  id   String @id @default(cuid())
+  name String
+
+  patientId String
+  patient   Patient @relation(fields: [patientId], references: [id])
+}
+
+// ─── Doctor domain ───────────────────────────────────────────────────────────
+
+model Doctor {
+  id             String @id @default(cuid())
+  firstName      String
+  lastName       String
+  specialization String
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+
+  schedule     DoctorSchedule?
+  appointments Appointment[]
+}
+
+model DoctorSchedule {
+  id String @id @default(cuid())
+
+  // activeDays stored as JSON array of ISO day numbers (1=Mon … 7=Sun)
+  activeDays          String
+  startTime           String // HH:MM
+  endTime             String // HH:MM
+  slotDurationMinutes Int
+
+  doctorId String @unique
+  doctor   Doctor @relation(fields: [doctorId], references: [id])
+}
+
+// ─── Documents ───────────────────────────────────────────────────────────────
+
+model Document {
+  id         String   @id @default(cuid())
+  fileName   String
+  filePath   String
+  uploadedAt DateTime @default(now())
+
+  patientId String
+  patient   Patient @relation(fields: [patientId], references: [id])
+
+  appointments AppointmentDocument[]
+}
+
+// ─── Appointments ─────────────────────────────────────────────────────────────
+
+model Appointment {
+  id       String   @id @default(cuid())
+  datetime DateTime
+
+  patientId String
+  patient   Patient @relation(fields: [patientId], references: [id])
+
+  doctorId String
+  doctor   Doctor @relation(fields: [doctorId], references: [id])
+
+  documents AppointmentDocument[]
+  summary   VisitSummary?
+
+  @@unique([doctorId, datetime])
+}
+
+// Junction table: documents shared per appointment.
+// Cross-patient safety: the booking use case MUST verify that
+// Document.patientId == Appointment.patientId before inserting here.
+// SQLite lacks deferred FK checks across tables, so this invariant is
+// enforced at the application layer (AppointmentService).
+model AppointmentDocument {
+  appointmentId String
+  appointment   Appointment @relation(fields: [appointmentId], references: [id])
+
+  documentId String
+  document   Document @relation(fields: [documentId], references: [id])
+
+  @@id([appointmentId, documentId])
+}
+
+// ─── Visit summary ───────────────────────────────────────────────────────────
+
+model VisitSummary {
+  id              String @id @default(cuid())
+  diagnosis       String
+  recommendations String
+  medications     String
+  referrals       String
+
+  appointmentId String      @unique
+  appointment   Appointment @relation(fields: [appointmentId], references: [id])
+}
