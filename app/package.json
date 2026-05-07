@@ -9,9 +9,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test:integration": "prisma generate && tsx --test tests/integration/seed.test.ts",
+    "test:unit": "tsx --test tests/unit/*.test.ts",
+    "test:integration": "prisma generate && tsx --test tests/integration/seed.test.ts tests/integration/auth.test.ts",
     "test:e2e": "playwright test --project=e2e",
-    "test": "npm run test:integration && npm run test:e2e"
+    "test": "npm run test:unit && npm run test:integration && npm run test:e2e"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

@@ -5,7 +5,7 @@
  * the application and a factory for tests (which need isolated databases).
  */
 import path from "path";
-import { PrismaClient } from "../../generated/prisma/client.js";
+import { PrismaClient } from "../../generated/prisma/client";
 import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 
 // Absolute path so it resolves correctly regardless of process.cwd()
