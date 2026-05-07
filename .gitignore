@@ -1,0 +1,40 @@
+ # Dependencies
+    node_modules/
+
+    # Next.js
+    .next/
+    out/
+    build/
+
+    # Environment variables
+    .env
+    .env.local
+    .env.*.local
+
+    # Database (SQLite — dev only, nie commitujemy)
+    prisma/dev.db
+    prisma/dev.db-journal
+    *.db
+    *.db-journal
+
+    # Playwright
+    test-results/
+    playwright-report/
+    blob-report/
+    playwright/.cache/
+
+    # Debug / pliki tymczasowe
+    *.log
+    npm-debug.log*
+
+    # OS
+    .DS_Store
+    Thumbs.db
+
+    # IDE
+    .idea/
+    .vscode/
+
+    # TypeScript
+    *.tsbuildinfo
+    next-env.d.ts
